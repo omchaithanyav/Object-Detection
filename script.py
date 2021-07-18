@@ -96,7 +96,7 @@ class speak():
 
         while(True):
           
-                voice("just say, 'detect' to start object detection")
+                voice("just say, 'detect' to start object detection, or say 'exit' to terminate the program")
                 text = getting_audio()
                 
                 if text == 0:
