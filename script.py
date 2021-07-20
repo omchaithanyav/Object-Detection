@@ -43,7 +43,9 @@ def getting_audio():
         return getting_audio()
 
 
-def detect():
+def video_obj_detect():
+    
+    video = 'video.mp4'
     
     Conf_threshold = 0.7
     NMS_threshold = 0.4
@@ -56,7 +58,7 @@ def detect():
     model = cv2.dnn_DetectionModel(net)
     model.setInputParams(size = (416,416), scale = 1/255, swapRB = True)
     
-    cap = cv2.VideoCapture('video.mp4')
+    cap = cv2.VideoCapture(video)
     
     while(True):
         ret, frame = cap.read()
@@ -75,16 +77,48 @@ def detect():
         
         key = cv2.waitKey(1)
         if key == ord('s'):
+            voice("say exit to stop the object detection")
             text = getting_audio()
-            if 'stop' in str(text):
+            
+            if 'exit' in str(text):
                 break
             
         
     cap.release()
     cv2.destroyAllWindows() 
     
+   
+def image_obj_detect():
+    import cv2
+    image = 'img121.jpg'
     
-
+    img = cv2.imread(image)
+   
+    with open('coco.names', 'r') as f:
+        classes = f.read().splitlines()
+    
+    net = cv2.dnn.readNetFromDarknet('yolov4.cfg', 'yolov4.weights')
+   
+    model = cv2.dnn_DetectionModel(net)
+    model.setInputParams(scale=1 / 255, size=(416, 416), swapRB=True)
+    
+    classIds, scores, boxes = model.detect(img, confThreshold=0.6, nmsThreshold=0.4)
+   
+    for (classId, score, box) in zip(classIds, scores, boxes):
+       
+        cv2.rectangle(img, (box[0], box[1]), (box[0] + box[2], box[1] + box[3]), color=(0, 255, 0), thickness=2)
+       
+        text = '%s: %.2f' % (classes[classId[0]], score)
+        cv2.putText(img, text, (box[0], box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, color=(0, 255, 0), thickness=2)
+    
+    cv2.imshow('Image', img)  
+   
+    key = cv2.waitKey(0)
+    
+    cv2.destroyAllWindows()
+        
+    
+    
 
 class speak():
     
@@ -96,18 +130,25 @@ class speak():
 
         while(True):
           
-                voice("just say, 'detect' to start object detection, or say 'exit' to terminate the program")
+                voice("just say, 'detect' to start object detection, or say exit to terminate the program")
                 text = getting_audio()
                 
                 if text == 0:
                         break
                     
-                elif "detect" in str(text):
-                        detect()
+                elif "detect" in str(text) or "detection" in str(text) or "detecting" in str(text):
+                        voice("you want object detection in video or in image")
+                        text = getting_audio()
+                        if "video" in str(text):
+                            video_obj_detect()
+                        elif "image" in str(text):
+                            image_obj_detect()
+                        else:
+                            voice("sorry, can't help you with that")
                     
       
                 elif "exit" in str(text) or "bye" in str(text) or "stop" in str(text) or "terminate" in str(text):
-                        voice("bye buddy, "+ "have a great time"+'.')
+                        voice("Bye bye")
                         break
                     
                 else:
